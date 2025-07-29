@@ -16,12 +16,13 @@ namespace RabbitMQ.Publisher
 
             channel.QueueDeclare("hello-queue", true, false, false);
 
-            string message = "Things Of Quality Have No Fear Of Time";
-
-            var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
-
-            channel.BasicPublish(string.Empty,"hello-queue",null,messageBody);
-            Console.WriteLine("Message sent");
+            Enumerable.Range(1,50).ToList().ForEach(i =>
+            {
+                string message = $"Message {i} - Things Of Quality Have No Fear Of Time";
+                var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
+                channel.BasicPublish(string.Empty, "hello-queue", null, messageBody);
+                Console.WriteLine($"Message {i} sent");
+            });
             Console.ReadLine();
         }
     }

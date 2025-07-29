@@ -16,14 +16,19 @@ namespace RabbitMQ.Subscriber
             var channel = connection.CreateModel();
 
             //channel.QueueDeclare("hello-queue", true, false, false);
+
+            channel.BasicQos(0, 1, false); // Fair dispatch - only one message at a time per consumer
+
             var consumer = new EventingBasicConsumer(channel);
 
-            channel.BasicConsume("hello-queue", true, consumer);
+            channel.BasicConsume("hello-queue", false, consumer);
 
             consumer.Received += (object sender, BasicDeliverEventArgs e) =>
             {
                 var message = System.Text.Encoding.UTF8.GetString(e.Body.ToArray());
                 Console.WriteLine("Received Message = " + message);
+
+                channel.BasicAck(e.DeliveryTag, false);
             };
 
             Console.ReadLine();
