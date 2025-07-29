@@ -14,13 +14,15 @@ namespace RabbitMQ.Publisher
 
             var channel = connection.CreateModel();
 
-            channel.QueueDeclare("hello-queue", true, false, false);
+            // channel.QueueDeclare("hello-queue", true, false, false); routing key is not used in this case (fanout)
+
+            channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout);
 
             Enumerable.Range(1,50).ToList().ForEach(i =>
             {
-                string message = $"Message {i} - Things Of Quality Have No Fear Of Time";
+                string message = $"Message {i} - Things Of Quality Have No Fear Of Time (fanout)";
                 var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
-                channel.BasicPublish(string.Empty, "hello-queue", null, messageBody);
+                channel.BasicPublish("logs-fanout","",null, messageBody);
                 Console.WriteLine($"Message {i} sent");
             });
             Console.ReadLine();

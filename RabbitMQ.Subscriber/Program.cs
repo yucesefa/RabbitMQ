@@ -17,11 +17,17 @@ namespace RabbitMQ.Subscriber
 
             //channel.QueueDeclare("hello-queue", true, false, false);
 
+            var randomQueueName = channel.QueueDeclare().QueueName; // Create a temporary queue
+
+            channel.QueueBind(randomQueueName, "logs-fanout", "",null); // Bind the temporary queue to the fanout exchange
+
             channel.BasicQos(0, 1, false); // Fair dispatch - only one message at a time per consumer
 
             var consumer = new EventingBasicConsumer(channel);
 
-            channel.BasicConsume("hello-queue", false, consumer);
+            channel.BasicConsume(randomQueueName, false, consumer);
+
+            Console.WriteLine("Waiting for logs... Press Enter to exit.");
 
             consumer.Received += (object sender, BasicDeliverEventArgs e) =>
             {
