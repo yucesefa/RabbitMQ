@@ -2,6 +2,13 @@
 using System;
 namespace RabbitMQ.Publisher
 {
+    public enum LogNames
+    {
+        Critical=1,
+        Error = 2,
+        Warning = 3,
+        Info = 4
+    }
     class Program
     {
         static void Main(string[] args)
@@ -16,14 +23,29 @@ namespace RabbitMQ.Publisher
 
             // channel.QueueDeclare("hello-queue", true, false, false); routing key is not used in this case (fanout)
 
-            channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout);
+            channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Fanout);
+
+            Enum.GetNames(typeof(LogNames)).ToList().ForEach(logName =>
+            {
+                var routeKey = $"route-{logName}";
+                var queueName = $"direct-queue-{logName}";
+                channel.QueueDeclare(queueName, true, false, false);
+
+                channel.QueueBind(queueName, "logs-direct", routeKey, null);
+            });
 
             Enumerable.Range(1,50).ToList().ForEach(i =>
             {
-                string message = $"Message {i} - Things Of Quality Have No Fear Of Time (fanout)";
+                LogNames log =(LogNames)new Random().Next(1, 4); 
+
+                string message = $"log-type {log} - Things Of Quality Have No Fear Of Time (direct)";
+
                 var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
-                channel.BasicPublish("logs-fanout","",null, messageBody);
-                Console.WriteLine($"Message {i} sent");
+
+                var routeKey = $"route-{log}";
+                
+                channel.BasicPublish("logs-direct",routeKey,null, messageBody);
+                Console.WriteLine($"Log sent  {message}");
             });
             Console.ReadLine();
         }

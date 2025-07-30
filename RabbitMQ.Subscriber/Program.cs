@@ -21,11 +21,15 @@ namespace RabbitMQ.Subscriber
 
             channel.QueueBind(randomQueueName, "logs-fanout", "",null); // Bind the temporary queue to the fanout exchange
 
+            
+            
             channel.BasicQos(0, 1, false); // Fair dispatch - only one message at a time per consumer
 
             var consumer = new EventingBasicConsumer(channel);
 
-            channel.BasicConsume(randomQueueName, false, consumer);
+            var queueName = "direct-queue-Critical";
+
+            channel.BasicConsume(queueName, false, consumer);
 
             Console.WriteLine("Waiting for logs... Press Enter to exit.");
 
@@ -33,6 +37,8 @@ namespace RabbitMQ.Subscriber
             {
                 var message = System.Text.Encoding.UTF8.GetString(e.Body.ToArray());
                 Console.WriteLine("Received Message = " + message);
+
+               // File.AppendAllText("logs.txt", $"{DateTime.Now}: {message}\n");
 
                 channel.BasicAck(e.DeliveryTag, false);
             };
