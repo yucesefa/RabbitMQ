@@ -27,7 +27,11 @@ namespace RabbitMQ.Subscriber
 
             var consumer = new EventingBasicConsumer(channel);
 
-            var queueName = "direct-queue-Critical";
+            var queueName = channel.QueueDeclare().QueueName; // Create a new queue for the consumer
+
+            var routeKey = "*.Error.*";
+
+            channel.QueueBind(queueName, "logs-topic", routeKey); // Bind to the topic exchange with a wildcard routing key
 
             channel.BasicConsume(queueName, false, consumer);
 

@@ -23,28 +23,39 @@ namespace RabbitMQ.Publisher
 
             // channel.QueueDeclare("hello-queue", true, false, false); routing key is not used in this case (fanout)
 
-            channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Fanout);
+            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
 
-            Enum.GetNames(typeof(LogNames)).ToList().ForEach(logName =>
-            {
-                var routeKey = $"route-{logName}";
-                var queueName = $"direct-queue-{logName}";
-                channel.QueueDeclare(queueName, true, false, false);
+            //Enum.GetNames(typeof(LogNames)).ToList().ForEach(logName =>
+            //{
+            //    Random random = new Random();
+            //    LogNames log1 = (LogNames)random.Next(1, 5);
+            //    LogNames log2 = (LogNames)random.Next(1, 5);
+            //    LogNames log3 = (LogNames)random.Next(1, 5);
 
-                channel.QueueBind(queueName, "logs-direct", routeKey, null);
-            });
 
+            //    var routeKey = $"{log1}.{log2}.{log3}";
+            //    //var queueName = $"direct-queue-{logName}";
+            //    //channel.QueueDeclare(queueName, true, false, false);
+
+            //    channel.QueueBind(queueName, "logs-direct", routeKey, null);
+            //});
+            Random random = new Random();
             Enumerable.Range(1,50).ToList().ForEach(i =>
             {
                 LogNames log =(LogNames)new Random().Next(1, 4); 
 
-                string message = $"log-type {log} - Things Of Quality Have No Fear Of Time (direct)";
+    
+                LogNames log1 = (LogNames)random.Next(1, 5);
+                LogNames log2 = (LogNames)random.Next(1, 5);
+                LogNames log3 = (LogNames)random.Next(1, 5);
+
+                var routeKey = $"{log1}.{log2}.{log3}";
+
+                string message = $"log-type: {log1}-{log2}-{log3} - Things Of Quality Have No Fear Of Time (topic)";
 
                 var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
 
-                var routeKey = $"route-{log}";
-                
-                channel.BasicPublish("logs-direct",routeKey,null, messageBody);
+                channel.BasicPublish("logs-topic",routeKey,null, messageBody);
                 Console.WriteLine($"Log sent  {message}");
             });
             Console.ReadLine();
