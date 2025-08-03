@@ -1,6 +1,8 @@
 ﻿using RabbitMQ.Client;
+using RabbitMQ.Shared;
 using System;
 using System.Text;
+using System.Text.Json;
 namespace RabbitMQ.Publisher
 {
     public enum LogNames
@@ -35,7 +37,18 @@ namespace RabbitMQ.Publisher
             properties.Headers = headers; // Set the headers property
             properties.Persistent = true; // Make the message persistent
 
-            channel.BasicPublish("header-exchange", string.Empty, properties,Encoding.UTF8.GetBytes("header message"));
+            var product = new Product
+            {
+                Id = 1,
+                Name = "Sample Product",
+                Price = 19.99m,
+                Stock = 100,    
+            };
+
+            var productJsonString = JsonSerializer.Serialize(product);
+
+
+            channel.BasicPublish("header-exchange", string.Empty, properties,Encoding.UTF8.GetBytes(productJsonString));
 
             Console.WriteLine("Message sent to header-exchange with headers.");
 

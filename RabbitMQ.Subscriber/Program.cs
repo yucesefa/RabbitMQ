@@ -1,6 +1,8 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Shared;
 using System;
+using System.Text.Json;
 namespace RabbitMQ.Subscriber
 {
     class Program
@@ -34,7 +36,7 @@ namespace RabbitMQ.Subscriber
 
             headers.Add("format", "pdf");
             headers.Add("shape", "a4");
-            headers.Add("x-match", "all"); // Use "all" for matching all headers
+            headers.Add("x-match", "any"); // Use "all" for matching all headers
 
             channel.QueueBind(queueName, "header-exchange",String.Empty,headers);
 
@@ -45,7 +47,10 @@ namespace RabbitMQ.Subscriber
             consumer.Received += (object sender, BasicDeliverEventArgs e) =>
             {
                 var message = System.Text.Encoding.UTF8.GetString(e.Body.ToArray());
-                Console.WriteLine("Received Message = " + message);
+
+                Product product = JsonSerializer.Deserialize<Product>(message);
+
+                Console.WriteLine($"Received Message =  { product.Id}- {product.Name}- {product.Price}-{product.Stock}");
 
                // File.AppendAllText("logs.txt", $"{DateTime.Now}: {message}\n");
 
