@@ -29,9 +29,11 @@ namespace RabbitMQ.Publisher
             Dictionary<string, object> headers = new Dictionary<string, object>();
             headers.Add("format", "pdf");
             headers.Add("shape", "a4");
+            
 
             var properties = channel.CreateBasicProperties();
             properties.Headers = headers; // Set the headers property
+            properties.Persistent = true; // Make the message persistent
 
             channel.BasicPublish("header-exchange", string.Empty, properties,Encoding.UTF8.GetBytes("header message"));
 
