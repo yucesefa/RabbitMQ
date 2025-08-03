@@ -14,6 +14,7 @@ namespace RabbitMQ.Subscriber
             using var connection = factory.CreateConnection();
 
             var channel = connection.CreateModel();
+            channel.ExchangeDeclare("header-exchange", durable: true, type: ExchangeType.Headers);
 
             //channel.QueueDeclare("hello-queue", true, false, false);
 
@@ -29,9 +30,13 @@ namespace RabbitMQ.Subscriber
 
             var queueName = channel.QueueDeclare().QueueName; // Create a new queue for the consumer
 
-            var routeKey = "*.Error.*";
+            Dictionary<string, object> headers = new Dictionary<string, object>();
 
-            channel.QueueBind(queueName, "logs-topic", routeKey); // Bind to the topic exchange with a wildcard routing key
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
+            headers.Add("x-match", "all"); // Use "all" for matching all headers
+
+            channel.QueueBind(queueName, "header-exchange",String.Empty,headers);
 
             channel.BasicConsume(queueName, false, consumer);
 

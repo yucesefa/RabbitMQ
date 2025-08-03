@@ -1,5 +1,6 @@
 ﻿using RabbitMQ.Client;
 using System;
+using System.Text;
 namespace RabbitMQ.Publisher
 {
     public enum LogNames
@@ -23,41 +24,19 @@ namespace RabbitMQ.Publisher
 
             // channel.QueueDeclare("hello-queue", true, false, false); routing key is not used in this case (fanout)
 
-            channel.ExchangeDeclare("logs-topic", durable: true, type: ExchangeType.Topic);
+            channel.ExchangeDeclare("header-exchange", durable: true, type: ExchangeType.Headers);
 
-            //Enum.GetNames(typeof(LogNames)).ToList().ForEach(logName =>
-            //{
-            //    Random random = new Random();
-            //    LogNames log1 = (LogNames)random.Next(1, 5);
-            //    LogNames log2 = (LogNames)random.Next(1, 5);
-            //    LogNames log3 = (LogNames)random.Next(1, 5);
+            Dictionary<string, object> headers = new Dictionary<string, object>();
+            headers.Add("format", "pdf");
+            headers.Add("shape", "a4");
 
+            var properties = channel.CreateBasicProperties();
+            properties.Headers = headers; // Set the headers property
 
-            //    var routeKey = $"{log1}.{log2}.{log3}";
-            //    //var queueName = $"direct-queue-{logName}";
-            //    //channel.QueueDeclare(queueName, true, false, false);
+            channel.BasicPublish("header-exchange", string.Empty, properties,Encoding.UTF8.GetBytes("header message"));
 
-            //    channel.QueueBind(queueName, "logs-direct", routeKey, null);
-            //});
-            Random random = new Random();
-            Enumerable.Range(1,50).ToList().ForEach(i =>
-            {
-                LogNames log =(LogNames)new Random().Next(1, 4); 
+            Console.WriteLine("Message sent to header-exchange with headers.");
 
-    
-                LogNames log1 = (LogNames)random.Next(1, 5);
-                LogNames log2 = (LogNames)random.Next(1, 5);
-                LogNames log3 = (LogNames)random.Next(1, 5);
-
-                var routeKey = $"{log1}.{log2}.{log3}";
-
-                string message = $"log-type: {log1}-{log2}-{log3} - Things Of Quality Have No Fear Of Time (topic)";
-
-                var messageBody = System.Text.Encoding.UTF8.GetBytes(message);
-
-                channel.BasicPublish("logs-topic",routeKey,null, messageBody);
-                Console.WriteLine($"Log sent  {message}");
-            });
             Console.ReadLine();
         }
     }
